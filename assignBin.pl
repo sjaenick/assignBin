@@ -17,9 +17,12 @@ while (my $line = <KRKN>) {
     my @elems = split(/\t/, $line);
     if ($elems[0] eq 'C') {
         my $taxid = int($elems[2]);
+        $taxid = $merged->{$taxid} if defined($merged->{$taxid});
         $assignmentCounts->{$taxid}++;
         while ($taxid != $tax2parent->{$taxid}) {
+            #die "no parent for $taxid" unless defined($tax2parent->{$taxid});
             $taxid = $tax2parent->{$taxid};
+            $taxid = $merged->{$taxid} if defined($merged->{$taxid});
             $assignmentCounts->{$taxid}++;
         }
     }
@@ -33,6 +36,7 @@ foreach my $rank (qw(species genus family order class phylum superkingdom)) {
     my $maxTaxId;
     foreach my $tid (keys %$assignmentCounts) {
         # extract tax. profile at given rank
+        die "no rank for $tid" unless defined($tax2rank->{$tid});
         if ($tax2rank->{$tid} eq $rank and $assignmentCounts->{$tid} >= $minNumber) {
             $rankProfile->{$tid} = $assignmentCounts->{$tid};
             if ($rankProfile->{$tid} > $max) {
