@@ -3,7 +3,7 @@ class: CommandLineTool
 
 hints:   
   DockerRequirement:     
-    dockerPull: sjaenick/assignBin
+    dockerPull: sjaenick/assignbin
 
 label: "Taxonomic assignment of a metagenomic bin"
 
