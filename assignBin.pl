@@ -8,7 +8,7 @@ my $ncbiTaxDir = $ARGV[1];
 my $minFraction = $ARGV[2];
 my $minNumber = $ARGV[3];
 my $outfile = $ARGV[4];
-my ($tax2parent, $merged, $tax2rank, $tax2name) = load_ncbi_taxonomy($ncbiTaxDir);
+my ($tax2parent, $merged, $tax2rank, $tax2name, $deleted) = load_ncbi_taxonomy($ncbiTaxDir);
 
 my $assignmentCounts = {};
 
@@ -18,12 +18,14 @@ while (my $line = <KRKN>) {
     if ($elems[0] eq 'C') {
         my $taxid = int($elems[2]);
         $taxid = $merged->{$taxid} if defined($merged->{$taxid});
-        $assignmentCounts->{$taxid}++;
-        while ($taxid != $tax2parent->{$taxid}) {
-            #die "no parent for $taxid" unless defined($tax2parent->{$taxid});
-            $taxid = $tax2parent->{$taxid};
-            $taxid = $merged->{$taxid} if defined($merged->{$taxid});
+        if (!defined($deleted->{$taxid})) {
             $assignmentCounts->{$taxid}++;
+            while ($taxid != $tax2parent->{$taxid}) {
+                #die "no parent for $taxid" unless defined($tax2parent->{$taxid});
+                $taxid = $tax2parent->{$taxid};
+                $taxid = $merged->{$taxid} if defined($merged->{$taxid});
+                $assignmentCounts->{$taxid}++;
+            }
         }
     }
 }
@@ -123,6 +125,15 @@ sub load_ncbi_taxonomy {
     }
     close($names);
 
-    return ($data, $merged, $tax2rank, $tax2name);
+    my $deleted = {};
+    open(my $delnodes, '<', $taxDir.'/delnodes.dmp') or die 'Cannot open ".$taxDir."/delnodes.dmp';
+    while (<$delnodes>) {
+        chop; chop; chop;  # remove '\t|\n'
+        $deleted->{$_} = 1;
+    }
+    close($delnodes);
+
+
+    return ($data, $merged, $tax2rank, $tax2name, $deleted);
 }
 
