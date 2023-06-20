@@ -15,7 +15,8 @@ my $assignmentCounts = {};
 open (KRKN, '<', $kraken2out) or die $!;
 while (my $line = <KRKN>) {
     my @elems = split(/\t/, $line);
-    if ($elems[0] eq 'C') {
+    # kraken uses 'C', metabuli '1' for classified sequences
+    if (($elems[0] eq 'C') || ($elems[0] eq '1')) {
         my $taxid = int($elems[2]);
         $taxid = $merged->{$taxid} if defined($merged->{$taxid});
         if (!defined($deleted->{$taxid})) {
